@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TaskFlow</title>
+    <link rel="stylesheet" href="assets/css/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="app-container">
+        <header class="header">
+            <div class="logo">
+                <h1 id="app-logo"><span class="task">Task</span><span class="flow">Flow</span></h1>
+            </div>
+            <div class="header-controls">
+                <button id="focus-mode-toggle" class="focus-mode-btn">
+                    <span class="focus-mode-icon">🎯</span>
+                    <span class="focus-mode-text">Focus Mode</span>
+                </button>
+            </div>
+        </header>
+
+        <main class="main-content">
+            <aside class="sidebar">
+                <nav class="nav-menu">
+                    <ul>
+                        <li class="nav-item active" data-view="today">
+                            <span class="nav-icon">📅</span>
+                            <span class="nav-text">Today</span>
+                        </li>
+                        <li class="nav-item" data-view="upcoming">
+                            <span class="nav-icon">📆</span>
+                            <span class="nav-text">Upcoming</span>
+                        </li>
+                        <li class="nav-item" data-view="projects">
+                            <span class="nav-icon">📁</span>
+                            <span class="nav-text">Projects</span>
+                        </li>
+                        <li class="nav-item" data-view="analytics">
+                            <span class="nav-icon">📊</span>
+                            <span class="nav-text">Analytics</span>
+                        </li>
+                    </ul>
+                </nav>
+                <button id="credits-button" class="credits-button">Credits</button>
+            </aside>
+
+            <section class="content">
+                <div class="view-container" id="today-view">
+                    <div class="section-header">
+                        <h2>Today's Tasks</h2>
+                        <button id="add-task-btn" class="btn primary">+ New Task</button>
+                    </div>
+                    
+                    <div class="tasks-container" id="tasks-list">
+                        <!-- Task items will be dynamically inserted here -->
+                        <div class="empty-state">
+                            <p>No tasks for today. Add your first task to get started!</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="view-container hidden" id="upcoming-view">
+                    <h2>Upcoming Tasks</h2>
+                    <p>Your future scheduled tasks will appear here.</p>
+                </div>
+                
+                <div class="view-container hidden" id="projects-view">
+                    <h2>Projects</h2>
+                    <p>Your project-based tasks and goals will appear here.</p>
+                </div>
+                
+                <div class="view-container hidden" id="analytics-view">
+                    <h2>Productivity Analytics</h2>
+                    <p>Your productivity trends and insights will appear here.</p>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Task Modal -->
+    <div class="modal" id="task-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modal-title">Add New Task</h3>
+                <button class="close-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="task-form">
+                    <div class="form-group">
+                        <label for="task-title">Task Title</label>
+                        <input type="text" id="task-title" placeholder="What needs to be done?" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="task-description">Description (optional)</label>
+                        <textarea id="task-description" placeholder="Add details about this task"></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="task-due-date">Due Date</label>
+                        <input type="datetime-local" id="task-due-date">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="task-priority">Priority</label>
+                        <select id="task-priority">
+                            <option value="low">Low</option>
+                            <option value="medium" selected>Medium</option>
+                            <option value="high">High</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-actions">
+                        <button type="button" class="btn secondary" id="cancel-task">Cancel</button>
+                        <button type="submit" class="btn primary" id="save-task">Save Task</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Credits Modal -->
+    <div class="modal" id="credits-modal">
+        <div class="modal-content credits-modal">
+            <div class="modal-header">
+                <h3>Credits</h3>
+                <button class="close-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p>TaskFlow, created & managed by Helzky</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Task Template (hidden, used for JS cloning) -->
+    <template id="task-item-template">
+        <div class="task-item" data-id="">
+            <div class="task-checkbox">
+                <input type="checkbox" class="task-complete-checkbox">
+                <span class="checkmark"></span>
+            </div>
+            <div class="task-content">
+                <h3 class="task-title"></h3>
+                <p class="task-description"></p>
+                <div class="task-meta">
+                    <span class="task-due-date"></span>
+                    <span class="task-priority"></span>
+                </div>
+            </div>
+            <div class="task-actions">
+                <button class="task-edit btn-icon" title="Edit Task">✏️</button>
+                <button class="task-delete btn-icon" title="Delete Task">🗑️</button>
+            </div>
+        </div>
+    </template>
+
+    <script src="assets/js/app.js" type="module"></script>
+</body>
+</html>
