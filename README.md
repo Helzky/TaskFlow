@@ -65,6 +65,7 @@ The application has been implemented with:
 
 ## Planned Features
 
+- Binaries for Windows, Linux, and macOS released on Github
 - OS integration for focus mode to close distracting applications
 - Productivity analytics implementation in the Analytics view
 - Cloud synchronization for cross-device access
