@@ -6,6 +6,7 @@
     <title>TaskFlow</title>
     <link rel="stylesheet" href="assets/css/styles.css">
     <link rel="stylesheet" href="assets/css/toast.css">
+    <link rel="stylesheet" href="assets/css/dialog.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
@@ -65,8 +66,13 @@
                 </div>
                 
                 <div class="view-container hidden" id="upcoming-view">
-                    <h2>Upcoming Tasks</h2>
-                    <p>Your future scheduled tasks will appear here.</p>
+                    <div class="section-header">
+                        <h2>Upcoming Tasks</h2>
+                    </div>
+                    <p class="upcoming-info">Tasks that are more than a month ahead. Make sure to plan ahead for these!</p>
+                    <div class="tasks-container" id="upcoming-tasks-list">
+                        <!-- Task items will be dynamically inserted here -->
+                    </div>
                 </div>
                 
                 <div class="view-container hidden" id="projects-view">

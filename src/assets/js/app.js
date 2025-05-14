@@ -11,6 +11,7 @@ class TaskFlowApp {
     
     // dom elements
     this.tasksList = document.getElementById('tasks-list');
+    this.upcomingTasksList = document.getElementById('upcoming-tasks-list');
     this.taskModal = document.getElementById('task-modal');
     this.taskForm = document.getElementById('task-form');
     this.navItems = document.querySelectorAll('.nav-item');
@@ -38,14 +39,14 @@ class TaskFlowApp {
   setupEventListeners() {
     // logo click to return to Today view
     this.appLogo.addEventListener('click', () => {
-      this.playSound('click');
+      // Sound functionality disabled
       this.switchView('today');
     });
     
     // navigation
     this.navItems.forEach(item => {
       item.addEventListener('click', () => {
-        this.playSound('click');
+        // Sound functionality disabled
         const view = item.dataset.view;
         this.switchView(view);
       });
@@ -53,19 +54,19 @@ class TaskFlowApp {
     
     // add task button
     document.getElementById('add-task-btn').addEventListener('click', () => {
-      this.playSound('click');
+      // Sound functionality disabled
       this.openTaskModal();
     });
     
     // task form submit
     this.taskForm.addEventListener('submit', (e) => {
       e.preventDefault();
-      this.saveTask();
+      this.saveTask.bind(this)();
     });
     
     // cancel task button
     document.getElementById('cancel-task').addEventListener('click', () => {
-      this.playSound('cancel');
+      // Sound functionality disabled
       this.closeTaskModal();
     });
     
@@ -73,7 +74,7 @@ class TaskFlowApp {
     const closeModalBtns = document.querySelectorAll('.close-modal');
     closeModalBtns.forEach(btn => {
       btn.addEventListener('click', () => {
-        this.playSound('cancel');
+        // Sound functionality disabled
         const modal = btn.closest('.modal');
         if (modal) {
           modal.classList.remove('open');
@@ -83,13 +84,13 @@ class TaskFlowApp {
     
     // focus mode toggle
     this.focusModeToggle.addEventListener('click', () => {
-      this.playSound('click');
+      // Sound functionality disabled
       this.toggleFocusMode();
     });
     
     // credits button
     this.creditsButton.addEventListener('click', () => {
-      this.playSound('click');
+      // Sound functionality disabled
       this.showCreditsModal();
     });
     
@@ -97,25 +98,43 @@ class TaskFlowApp {
     const formInputs = document.querySelectorAll('input, select, textarea');
     formInputs.forEach(input => {
       input.addEventListener('click', () => {
-        this.playSound('click');
+        // Sound functionality disabled
       });
     });
     
     // delegate task actions (complete, edit, delete)
-    this.tasksList.addEventListener('click', (e) => {
+    const handleTaskAction = (e) => {
       const taskItem = e.target.closest('.task-item');
       if (!taskItem) return;
       
       const taskId = taskItem.dataset.id;
       
+      // Check if the click was on a checkbox
       if (e.target.classList.contains('task-complete-checkbox')) {
         this.toggleTaskComplete(taskId, e.target.checked);
-      } else if (e.target.classList.contains('task-edit')) {
-        this.editTask(taskId);
-      } else if (e.target.classList.contains('task-delete')) {
-        this.deleteTask(taskId);
+        return;
       }
-    });
+      
+      // Find if we clicked on an edit button or its icon
+      const editButton = e.target.closest('.task-edit');
+      if (editButton) {
+        this.editTask(taskId);
+        return;
+      }
+      
+      // Find if we clicked on a delete button or its icon
+      const deleteButton = e.target.closest('.task-delete');
+      if (deleteButton) {
+        this.deleteTask(taskId);
+        return;
+      }
+    };
+    
+    // Add listeners to both task lists
+    this.tasksList.addEventListener('click', handleTaskAction);
+    if (this.upcomingTasksList) {
+      this.upcomingTasksList.addEventListener('click', handleTaskAction);
+    }
   }
   
   async loadTasks() {
@@ -129,18 +148,31 @@ class TaskFlowApp {
   }
   
   renderTasks() {
-    // clear current tasks
-    this.tasksList.innerHTML = '';
+    // Always check for tasks that are more than a month ahead for the upcoming section
+    const monthAheadTasks = this.getMonthAheadTasks();
+    
+    // Render tasks for upcoming section if we're not in that view
+    if (this.currentView !== 'upcoming') {
+      this.renderUpcomingTasks(monthAheadTasks);
+    }
+    
+    // Handle current view's task list
+    const currentTasksList = this.currentView === 'upcoming' ? this.upcomingTasksList : this.tasksList;
+    currentTasksList.innerHTML = '';
     
     // get tasks for current view
-    const filteredTasks = this.filterTasksByView();
+    const filteredTasks = this.currentView === 'upcoming' ? 
+      monthAheadTasks : this.filterTasksByView();
     
     if (filteredTasks.length === 0) {
       // show empty state
       const emptyState = document.createElement('div');
       emptyState.className = 'empty-state';
-      emptyState.innerHTML = '<p>No tasks for today. Add your first task to get started!</p>';
-      this.tasksList.appendChild(emptyState);
+      const emptyStateMessage = this.currentView === 'today' ? 
+        'No tasks for today. Add your first task to get started!' : 
+        'No tasks for this period yet.';
+      emptyState.innerHTML = `<p>${emptyStateMessage}</p>`;
+      currentTasksList.appendChild(emptyState);
       return;
     }
     
@@ -168,12 +200,51 @@ class TaskFlowApp {
     // create task elements
     sortedTasks.forEach(task => {
       const taskElement = this.createTaskElement(task);
-      this.tasksList.appendChild(taskElement);
+      currentTasksList.appendChild(taskElement);
       
       // add slide-in animation
       setTimeout(() => {
         taskElement.classList.add('animate__slideIn');
       }, 10);
+    });
+  }
+  
+  getMonthAheadTasks() {
+    // Get tasks that are more than a month ahead
+    const today = new Date();
+    const monthAhead = new Date();
+    monthAhead.setMonth(today.getMonth() + 1);
+    monthAhead.setHours(0, 0, 0, 0);
+    
+    return this.tasks.filter(task => {
+      if (!task.dueDate) return false;
+      
+      const dueDate = new Date(task.dueDate);
+      dueDate.setHours(0, 0, 0, 0);
+      
+      return dueDate >= monthAhead;
+    });
+  }
+  
+  renderUpcomingTasks(monthAheadTasks) {
+    // Render tasks that are more than a month ahead
+    if (!this.upcomingTasksList) return;
+    
+    this.upcomingTasksList.innerHTML = '';
+    
+    if (monthAheadTasks.length === 0) {
+      return; // Don't add empty state, keep the info text visible
+    }
+    
+    // sort tasks by due date
+    const sortedTasks = [...monthAheadTasks].sort((a, b) => {
+      return new Date(a.dueDate) - new Date(b.dueDate);
+    });
+    
+    // create task elements
+    sortedTasks.forEach(task => {
+      const taskElement = this.createTaskElement(task);
+      this.upcomingTasksList.appendChild(taskElement);
     });
   }
   
@@ -195,19 +266,8 @@ class TaskFlowApp {
         });
         
       case 'upcoming':
-        // show future tasks
-        const tomorrow = new Date();
-        tomorrow.setHours(0, 0, 0, 0);
-        tomorrow.setDate(tomorrow.getDate() + 1);
-        
-        return this.tasks.filter(task => {
-          if (!task.dueDate) return false;
-          
-          const dueDate = new Date(task.dueDate);
-          dueDate.setHours(0, 0, 0, 0);
-          
-          return dueDate >= tomorrow;
-        });
+        // We specifically want tasks more than a month ahead when viewing the upcoming tab
+        return this.getMonthAheadTasks();
         
       default:
         return this.tasks;
@@ -229,10 +289,6 @@ class TaskFlowApp {
     // set title with strikethrough if completed
     const titleElement = taskElement.querySelector('.task-title');
     titleElement.textContent = task.title;
-    if (task.completed) {
-      titleElement.style.textDecoration = 'line-through';
-      titleElement.style.opacity = '0.6';
-    }
     
     // set description if exists
     const descriptionElement = taskElement.querySelector('.task-description');
@@ -261,6 +317,25 @@ class TaskFlowApp {
     const priorityElement = taskElement.querySelector('.task-priority');
     priorityElement.textContent = this.capitalizeFirstLetter(task.priority || 'medium');
     priorityElement.dataset.priority = task.priority || 'medium';
+    
+    // Apply strikethrough effect to all task content if completed
+    if (task.completed) {
+      titleElement.style.textDecoration = 'line-through';
+      titleElement.style.opacity = '0.6';
+      
+      if (descriptionElement) {
+        descriptionElement.style.textDecoration = 'line-through';
+        descriptionElement.style.opacity = '0.6';
+      }
+      
+      if (dueDateElement) {
+        dueDateElement.style.textDecoration = 'line-through';
+        dueDateElement.style.opacity = '0.6';
+      }
+      
+      priorityElement.style.textDecoration = 'line-through';
+      priorityElement.style.opacity = '0.6';
+    }
     
     return taskElement;
   }
@@ -314,7 +389,7 @@ class TaskFlowApp {
     }, 100);
     
     // play sound effect
-    this.playSound('click');
+    // Sound functionality disabled
   }
   
   closeTaskModal() {
@@ -324,7 +399,7 @@ class TaskFlowApp {
   
   showCreditsModal() {
     this.creditsModal.classList.add('open');
-    this.playSound('click');
+    // Sound functionality disabled
   }
   
   async saveTask() {
@@ -362,7 +437,7 @@ class TaskFlowApp {
           );
           
           // Play sound effect and show notification
-          this.playSound('confirm');
+          // Sound functionality disabled
           this.showNotification('Task Updated', `Task "${title}" has been updated`);
         }
       } else {
@@ -371,7 +446,7 @@ class TaskFlowApp {
         this.tasks.push(newTask);
         
         // Play sound effect and show notification
-        this.playSound('confirm');
+        // Sound functionality disabled
         this.showNotification('Task Created', `New task "${title}" has been created`);
       }
       
@@ -396,15 +471,53 @@ class TaskFlowApp {
       // save to storage
       await window.api.tasks.update(task);
       
-      // render updates
-      this.renderTasks();
+      // Apply strikethrough immediately for better UX
+      const taskElement = document.querySelector(`.task-item[data-id="${taskId}"]`);
+      if (taskElement) {
+        const titleElement = taskElement.querySelector('.task-title');
+        const descriptionElement = taskElement.querySelector('.task-description');
+        const metaElements = taskElement.querySelectorAll('.task-meta span');
+        
+        if (isComplete) {
+          titleElement.style.textDecoration = 'line-through';
+          titleElement.style.opacity = '0.6';
+          
+          if (descriptionElement) {
+            descriptionElement.style.textDecoration = 'line-through';
+            descriptionElement.style.opacity = '0.6';
+          }
+          
+          metaElements.forEach(el => {
+            el.style.textDecoration = 'line-through';
+            el.style.opacity = '0.6';
+          });
+        } else {
+          titleElement.style.textDecoration = 'none';
+          titleElement.style.opacity = '1';
+          
+          if (descriptionElement) {
+            descriptionElement.style.textDecoration = 'none';
+            descriptionElement.style.opacity = '1';
+          }
+          
+          metaElements.forEach(el => {
+            el.style.textDecoration = 'none';
+            el.style.opacity = '1';
+          });
+        }
+      }
+      
+      // Render updates after a short delay for smoother transition
+      setTimeout(() => {
+        this.renderTasks();
+      }, 300);
       
       // play sound and show notification if completed
       if (isComplete) {
-        this.playSound('confirm');
+        // Sound functionality disabled
         this.showNotification('Task Completed', `Task "${task.title}" marked as complete`);
       } else {
-        this.playSound('click');
+        // Sound functionality disabled
         this.showNotification('Task Reopened', `Task "${task.title}" marked as incomplete`);
       }
     } catch (error) {
@@ -418,29 +531,62 @@ class TaskFlowApp {
   }
   
   async deleteTask(taskId) {
-    // confirm delete
-    if (!confirm('Are you sure you want to delete this task?')) return;
-    
     try {
       // Get task details before deletion
       const task = this.tasks.find(t => t.id === taskId);
       if (!task) return;
       
-      // delete from storage
-      await window.api.tasks.delete(taskId);
+      // Create custom confirmation dialog
+      const modalOverlay = document.createElement('div');
+      modalOverlay.className = 'modal-overlay';
       
-      // remove from local array
-      this.tasks = this.tasks.filter(t => t.id !== taskId);
+      const confirmDialog = document.createElement('div');
+      confirmDialog.className = 'confirm-dialog';
       
-      // render updates
-      this.renderTasks();
+      confirmDialog.innerHTML = `
+        <h3>Delete Task</h3>
+        <p>Are you sure you want to delete "${task.title}"?</p>
+        <div class="dialog-actions">
+          <button class="btn secondary cancel-delete">Cancel</button>
+          <button class="btn primary confirm-delete">Delete</button>
+        </div>
+      `;
       
-      // Play sound and show notification
-      this.playSound('cancel');
-      this.showNotification('Task Deleted', `Task "${task.title}" has been deleted`);
+      modalOverlay.appendChild(confirmDialog);
+      document.body.appendChild(modalOverlay);
+      
+      // Add event listeners to buttons
+      return new Promise((resolve) => {
+        const cancelButton = confirmDialog.querySelector('.cancel-delete');
+        const confirmButton = confirmDialog.querySelector('.confirm-delete');
+        
+        cancelButton.addEventListener('click', () => {
+          modalOverlay.remove();
+          resolve(false);
+        });
+        
+        confirmButton.addEventListener('click', async () => {
+          // delete from storage
+          await window.api.tasks.delete(taskId);
+          
+          // remove from local array
+          this.tasks = this.tasks.filter(t => t.id !== taskId);
+          
+          // render updates
+          this.renderTasks();
+          
+          // Play sound and show notification
+          // Sound functionality disabled
+          this.showNotification('Task Deleted', `Task "${task.title}" has been deleted`);
+          
+          modalOverlay.remove();
+          resolve(true);
+        });
+      });
     } catch (error) {
       console.error('Error deleting task:', error);
       this.showNotification('Error', 'Failed to delete task');
+      return false;
     }
   }
   
@@ -463,10 +609,10 @@ class TaskFlowApp {
       
       // play sound and show notification
       if (this.focusModeActive) {
-        this.playSound('confirm');
+        // Sound functionality disabled
         this.showNotification('Focus Mode Activated', 'Distractions minimized. Stay focused!');
       } else {
-        this.playSound('click');
+        // Sound functionality disabled
         this.showNotification('Focus Mode Deactivated', 'You can now return to normal mode.');
       }
     } catch (error) {
@@ -512,42 +658,69 @@ class TaskFlowApp {
   
   // Sound playback using the main process sound system
   playSound(category, randomize = true) {
-    try {
-      // Use the main process sound system via IPC
-      window.api.sound.play(category, randomize)
-        .catch(error => {
-          console.warn('Error playing sound via IPC:', error);
-        });
-    } catch (error) {
-      // Fail silently - sounds are non-critical
-      console.warn('Error in playSound method:', error);
-    }
+    // Sound functionality is completely disabled
+    // This is an empty no-op function that doesn't do anything
+    // The original implementation has been fully removed to prevent any errors
+    
+    // When sound functionality is restored, implement actual sound code here
+    return Promise.resolve(); // Return a resolved promise to maintain async behavior
   }
   
-  showNotification(title, message) {
-    // Create notification element
-    const notification = document.createElement('div');
-    notification.className = 'notification animate__fadeIn';
-    notification.innerHTML = `
-      <div class="notification-content">
+  showNotification(title, message, type = 'success') {
+    // Check for existing toast container or create one
+    let toastContainer = document.querySelector('.toast-container');
+    if (!toastContainer) {
+      toastContainer = document.createElement('div');
+      toastContainer.className = 'toast-container';
+      document.body.appendChild(toastContainer);
+    }
+    
+    // Create toast element
+    const toast = document.createElement('div');
+    toast.className = `toast toast-${type} animate__animated animate__fadeInUp`;
+    
+    // Set toast content
+    toast.innerHTML = `
+      <div class="toast-header">
         <h4>${title}</h4>
+        <button class="toast-close">&times;</button>
+      </div>
+      <div class="toast-body">
         <p>${message}</p>
       </div>
     `;
     
-    // Add to document
-    document.body.appendChild(notification);
+    // Add to container
+    toastContainer.appendChild(toast);
     
-    // Remove after delay
+    // Add close button functionality
+    const closeButton = toast.querySelector('.toast-close');
+    closeButton.addEventListener('click', () => {
+      this.removeToast(toast);
+    });
+    
+    // Auto-remove after delay
     setTimeout(() => {
-      notification.classList.add('animate__fadeOut');
-      setTimeout(() => {
-        notification.remove();
-      }, 300);
-    }, 3000);
+      this.removeToast(toast);
+    }, 4000);
     
-    // Play notification sound
-    this.playSound('notification', true);
+    // Sound functionality has been disabled
+  }
+  
+  removeToast(toast) {
+    // If already being removed, return
+    if (toast.classList.contains('animate__fadeOutDown')) return;
+    
+    // Apply exit animation
+    toast.classList.remove('animate__fadeInUp');
+    toast.classList.add('animate__fadeOutDown');
+    
+    // Remove after animation completes
+    setTimeout(() => {
+      if (toast.parentNode) {
+        toast.parentNode.removeChild(toast);
+      }
+    }, 300);
   }
 }
 

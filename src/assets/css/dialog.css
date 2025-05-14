@@ -1,0 +1,59 @@
+/* Custom Dialog Styles */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  animation: fadeIn 0.2s ease-out;
+}
+
+.confirm-dialog {
+  background-color: var(--surface-color);
+  border-radius: 8px;
+  box-shadow: var(--shadow-lg);
+  width: 100%;
+  max-width: 400px;
+  padding: var(--spacing-lg);
+  animation: slideUp 0.3s ease-out;
+}
+
+.confirm-dialog h3 {
+  margin-bottom: var(--spacing-md);
+  color: var(--text-color);
+}
+
+.confirm-dialog p {
+  margin-bottom: var(--spacing-lg);
+  color: var(--text-light);
+}
+
+.dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--spacing-md);
+}
+
+.confirm-delete {
+  background-color: var(--danger-color);
+  color: white;
+}
+
+.confirm-delete:hover {
+  background-color: #d32f2f;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { transform: translateY(30px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
