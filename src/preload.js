@@ -1,7 +1,6 @@
 const { contextBridge, ipcRenderer } = require('electron');
 
-// expose protected methods that allow the renderer process to use
-// the ipcRenderer without exposing the entire object
+// expose safe ipc methods
 contextBridge.exposeInMainWorld('api', {
   tasks: {
     getAll: () => ipcRenderer.invoke('tasks:get'),
@@ -13,7 +12,7 @@ contextBridge.exposeInMainWorld('api', {
     toggle: (enabled) => ipcRenderer.invoke('focus-mode:toggle', enabled)
   },
   utils: {
-    // For future utility functions
+    // for later
   },
-  // Reserved for future extensions
+  // more stuff later
 });

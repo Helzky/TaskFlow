@@ -1,6 +1,6 @@
-// No longer need to require sound player - using IPC instead
+// sound stuff uses ipc now
 
-// main application class
+// main app class
 class TaskFlowApp {
   constructor() {
     // app state
@@ -9,7 +9,7 @@ class TaskFlowApp {
     this.editingTaskId = null;
     this.focusModeActive = false;
     
-    // dom elements
+    // dom refs
     this.tasksList = document.getElementById('tasks-list');
     this.upcomingTasksList = document.getElementById('upcoming-tasks-list');
     this.taskModal = document.getElementById('task-modal');
@@ -21,60 +21,60 @@ class TaskFlowApp {
     this.creditsButton = document.getElementById('credits-button');
     this.creditsModal = document.getElementById('credits-modal');
     
-    // initialize the app
+    // init
     this.init();
   }
   
   async init() {
-    // load tasks from storage
+    // get stored tasks
     await this.loadTasks();
     
-    // setup event listeners
+    // setup events
     this.setupEventListeners();
     
-    // render initial tasks
+    // render tasks
     this.renderTasks();
   }
   
   setupEventListeners() {
-    // logo click to return to Today view
+    
     this.appLogo.addEventListener('click', () => {
-      // Sound functionality disabled
+      
       this.switchView('today');
     });
     
-    // navigation
+    
     this.navItems.forEach(item => {
       item.addEventListener('click', () => {
-        // Sound functionality disabled
+        
         const view = item.dataset.view;
         this.switchView(view);
       });
     });
     
-    // add task button
+    
     document.getElementById('add-task-btn').addEventListener('click', () => {
-      // Sound functionality disabled
+      
       this.openTaskModal();
     });
     
-    // task form submit
+    
     this.taskForm.addEventListener('submit', (e) => {
       e.preventDefault();
       this.saveTask.bind(this)();
     });
     
-    // cancel task button
+    
     document.getElementById('cancel-task').addEventListener('click', () => {
-      // Sound functionality disabled
+      
       this.closeTaskModal();
     });
     
-    // close modal button
+    
     const closeModalBtns = document.querySelectorAll('.close-modal');
     closeModalBtns.forEach(btn => {
       btn.addEventListener('click', () => {
-        // Sound functionality disabled
+        
         const modal = btn.closest('.modal');
         if (modal) {
           modal.classList.remove('open');
@@ -82,47 +82,47 @@ class TaskFlowApp {
       });
     });
     
-    // focus mode toggle
+    
     this.focusModeToggle.addEventListener('click', () => {
-      // Sound functionality disabled
+      
       this.toggleFocusMode();
     });
     
-    // credits button
+    
     this.creditsButton.addEventListener('click', () => {
-      // Sound functionality disabled
+      
       this.showCreditsModal();
     });
     
-    // Add sound effect to form inputs
+    
     const formInputs = document.querySelectorAll('input, select, textarea');
     formInputs.forEach(input => {
       input.addEventListener('click', () => {
-        // Sound functionality disabled
+        
       });
     });
     
-    // delegate task actions (complete, edit, delete)
+    // handle task actions
     const handleTaskAction = (e) => {
       const taskItem = e.target.closest('.task-item');
       if (!taskItem) return;
       
       const taskId = taskItem.dataset.id;
       
-      // Check if the click was on a checkbox
+      
       if (e.target.classList.contains('task-complete-checkbox')) {
         this.toggleTaskComplete(taskId, e.target.checked);
         return;
       }
       
-      // Find if we clicked on an edit button or its icon
+      
       const editButton = e.target.closest('.task-edit');
       if (editButton) {
         this.editTask(taskId);
         return;
       }
       
-      // Find if we clicked on a delete button or its icon
+      
       const deleteButton = e.target.closest('.task-delete');
       if (deleteButton) {
         this.deleteTask(taskId);
@@ -130,7 +130,7 @@ class TaskFlowApp {
       }
     };
     
-    // Add listeners to both task lists
+    
     this.tasksList.addEventListener('click', handleTaskAction);
     if (this.upcomingTasksList) {
       this.upcomingTasksList.addEventListener('click', handleTaskAction);
@@ -139,7 +139,7 @@ class TaskFlowApp {
   
   async loadTasks() {
     try {
-      // get tasks from electron store via our preload api
+      
       this.tasks = await window.api.tasks.getAll();
     } catch (error) {
       console.error('Error loading tasks:', error);
@@ -148,24 +148,24 @@ class TaskFlowApp {
   }
   
   renderTasks() {
-    // Always check for tasks that are more than a month ahead for the upcoming section
+    // grab tasks for upcoming month
     const monthAheadTasks = this.getMonthAheadTasks();
     
-    // Render tasks for upcoming section if we're not in that view
+    
     if (this.currentView !== 'upcoming') {
       this.renderUpcomingTasks(monthAheadTasks);
     }
     
-    // Handle current view's task list
+    
     const currentTasksList = this.currentView === 'upcoming' ? this.upcomingTasksList : this.tasksList;
     currentTasksList.innerHTML = '';
     
-    // get tasks for current view
+    
     const filteredTasks = this.currentView === 'upcoming' ? 
       monthAheadTasks : this.filterTasksByView();
     
     if (filteredTasks.length === 0) {
-      // show empty state
+      
       const emptyState = document.createElement('div');
       emptyState.className = 'empty-state';
       const emptyStateMessage = this.currentView === 'today' ? 
@@ -176,20 +176,20 @@ class TaskFlowApp {
       return;
     }
     
-    // sort tasks (incomplete first, then by priority and due date)
+    // sort by completion -> priority -> date
     const sortedTasks = [...filteredTasks].sort((a, b) => {
-      // completed tasks go to the bottom
+      
       if (a.completed !== b.completed) {
         return a.completed ? 1 : -1;
       }
       
-      // then sort by priority (high to low)
+      
       const priorityOrder = { high: 0, medium: 1, low: 2 };
       if (a.priority !== b.priority) {
         return priorityOrder[a.priority] - priorityOrder[b.priority];
       }
       
-      // then by due date (earliest first)
+      
       if (a.dueDate && b.dueDate) {
         return new Date(a.dueDate) - new Date(b.dueDate);
       }
@@ -197,7 +197,7 @@ class TaskFlowApp {
       return 0;
     });
     
-    // create task elements
+    
     sortedTasks.forEach(task => {
       const taskElement = this.createTaskElement(task);
       currentTasksList.appendChild(taskElement);
@@ -244,7 +244,7 @@ class TaskFlowApp {
       return new Date(a.dueDate) - new Date(b.dueDate);
     });
     
-    // create task elements
+    
     sortedTasks.forEach(task => {
       const taskElement = this.createTaskElement(task);
       this.upcomingTasksList.appendChild(taskElement);
@@ -392,7 +392,7 @@ class TaskFlowApp {
     }, 100);
     
     // play sound effect
-    // Sound functionality disabled
+    
   }
   
   closeTaskModal() {
@@ -402,7 +402,7 @@ class TaskFlowApp {
   
   showCreditsModal() {
     this.creditsModal.classList.add('open');
-    // Sound functionality disabled
+    
   }
   
   async saveTask() {
@@ -440,7 +440,7 @@ class TaskFlowApp {
           );
           
           // Play sound effect and show notification
-          // Sound functionality disabled
+          
           this.showNotification('Task Updated', `Task "${title}" has been updated`);
         }
       } else {
@@ -452,7 +452,7 @@ class TaskFlowApp {
         const isMonthAheadTask = this.isTaskMonthAhead(newTask);
         
         // Play sound effect and show notification
-        // Sound functionality disabled
+        
         if (isMonthAheadTask) {
           this.showNotification('Task Created', `Task "${title}" created and moved to Upcoming Tasks`, 'info');
         } else {
@@ -524,10 +524,10 @@ class TaskFlowApp {
       
       // play sound and show notification if completed
       if (isComplete) {
-        // Sound functionality disabled
+        
         this.showNotification('Task Completed', `Task "${task.title}" marked as complete`);
       } else {
-        // Sound functionality disabled
+        
         this.showNotification('Task Reopened', `Task "${task.title}" marked as incomplete`);
       }
     } catch (error) {
@@ -586,7 +586,7 @@ class TaskFlowApp {
           this.renderTasks();
           
           // Play sound and show notification
-          // Sound functionality disabled
+          
           this.showNotification('Task Deleted', `Task "${task.title}" has been deleted`);
           
           modalOverlay.remove();
@@ -619,10 +619,10 @@ class TaskFlowApp {
       
       // play sound and show notification
       if (this.focusModeActive) {
-        // Sound functionality disabled
+        
         this.showNotification('Focus Mode Activated', 'Distractions minimized. Stay focused!');
       } else {
-        // Sound functionality disabled
+        
         this.showNotification('Focus Mode Deactivated', 'You can now return to normal mode.');
       }
     } catch (error) {
@@ -734,7 +734,7 @@ class TaskFlowApp {
   }
 }
 
-// initialize app when DOM is loaded
+// start when loaded
 document.addEventListener('DOMContentLoaded', () => {
   const app = new TaskFlowApp();
 });

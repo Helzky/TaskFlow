@@ -1,5 +1,5 @@
 :root {
-  /* Color variables - Black/Grey/White theme */
+  /* color vars */
   --primary-color: #333333;
   --primary-light: #555555;
   --primary-dark: #111111;
@@ -13,19 +13,19 @@
   --surface-color: #1e1e1e;
   --border-color: #333333;
   
-  /* Spacing variables */
+  /* spacing */
   --spacing-xs: 4px;
   --spacing-sm: 8px;
   --spacing-md: 16px;
   --spacing-lg: 24px;
   --spacing-xl: 32px;
   
-  /* Transition speeds */
+  /* transitions */
   --transition-fast: 0.2s;
   --transition-medium: 0.4s;
   --transition-slow: 0.6s;
   
-  /* Shadows */
+  /* shadows */
   --shadow-sm: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
   --shadow-md: 0 4px 6px rgba(0,0,0,0.1);
   --shadow-lg: 0 10px 20px rgba(0,0,0,0.15);
@@ -49,13 +49,13 @@ body {
   transition: background-color var(--transition-medium);
 }
 
-/* Hide scrollbars globally while maintaining functionality */
+/* hide scrollbars */
 ::-webkit-scrollbar {
   width: 0;
   background: transparent;
 }
 
-/* App Layout */
+/* layout */
 .app-container {
   display: flex;
   flex-direction: column;
@@ -81,21 +81,43 @@ body {
   cursor: pointer;
   display: inline-block;
   transition: transform var(--transition-fast);
+  position: relative;
 }
 
 .logo h1:hover {
   transform: scale(1.05);
 }
 
+/* logo glow */
+.logo h1::before {
+  content: '';
+  position: absolute;
+  top: -8px;
+  left: -12px;
+  right: -12px;
+  bottom: -4px;
+  background: linear-gradient(90deg, 
+    rgba(240, 240, 240, 0.85) 0%, 
+    rgba(200, 200, 200, 0.7) 40%, 
+    rgba(100, 100, 100, 0.4) 70%, 
+    rgba(20, 20, 20, 0.5) 100%);
+  border-radius: 40%;
+  filter: blur(15px);
+  z-index: 1;
+  opacity: 0.75;
+}
+
 .logo h1 .task {
   color: #000000;
+  text-shadow: 0 0 10px rgba(240, 240, 240, 0.8), 0 0 20px rgba(220, 220, 220, 0.6), 0 0 30px rgba(200, 200, 200, 0.4);
+  position: relative;
+  z-index: 2;
 }
 
 .logo h1 .flow {
-  background: linear-gradient(90deg, #333333, #aaaaaa);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  color: #ffffff;
+  position: relative;
+  z-index: 2;
 }
 
 .main-content {
@@ -124,7 +146,7 @@ body {
   padding: var(--spacing-lg);
 }
 
-/* Navigation Menu */
+/* nav */
 .nav-menu {
   flex: 1;
   position: relative;

@@ -1,4 +1,4 @@
-/* Toast Notification Styles */
+/* toast popups */
 .toast-container {
   position: fixed;
   bottom: 20px;
@@ -71,7 +71,7 @@
   font-size: 14px;
 }
 
-/* Animation classes (in addition to animate.css) */
+/* animations */
 .animate__fadeInUp {
   animation-name: fadeInUp;
 }
@@ -102,7 +102,7 @@
   }
 }
 
-/* Animate.css compatibility */
+/* compat */
 .animate__animated {
   animation-duration: 0.3s;
   animation-fill-mode: both;

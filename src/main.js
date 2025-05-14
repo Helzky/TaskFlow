@@ -2,19 +2,19 @@ const { app, BrowserWindow, ipcMain } = require('electron');
 const path = require('path');
 const Store = require('electron-store');
 
-// initialize data storage
+// storage
 const store = new Store();
 
 class TaskFlowApp {
   constructor() {
     this.mainWindow = null;
     
-    // Initialize the app
+    // init
     this.init();
   }
 
   init() {
-    // app event listeners
+    // app events
     app.on('ready', this.createWindow.bind(this));
     
     app.on('window-all-closed', () => {
@@ -29,7 +29,7 @@ class TaskFlowApp {
       }
     });
     
-    // setup IPC listeners
+    // setup ipc
     this.setupIpcListeners();
   }
   
@@ -46,30 +46,30 @@ class TaskFlowApp {
         contextIsolation: true,
         preload: path.join(__dirname, 'preload.js')
       },
-      // modern, sleek appearance
+      // nice look
       backgroundColor: '#f8f9fa',
       show: false, // we'll show once ready for smoother UX
       icon: path.join(__dirname, 'assets/icons/app-icon.png'),
     });
     
-    // load the index.html file
+    
     this.mainWindow.loadFile(path.join(__dirname, 'index.html'));
     
     // this.mainWindow.webContents.openDevTools();
     
-    // show window when ready to avoid flickering
+    // avoid flicker
     this.mainWindow.once('ready-to-show', () => {
       this.mainWindow.show();
     });
     
-    // handle window close
+    
     this.mainWindow.on('closed', () => {
       this.mainWindow = null;
     });
   }
   
   setupIpcListeners() {
-    // handle task creation
+    
     ipcMain.handle('tasks:get', () => {
       return store.get('tasks', []);
     });
@@ -104,9 +104,9 @@ class TaskFlowApp {
       return taskId;
     });
     
-    // handle focus mode toggle
+    
     ipcMain.handle('focus-mode:toggle', (event, enabled) => {
-      // for the prototype we'll just track the state
+      // just track state for now
       store.set('focusMode', enabled);
       return enabled;
     });
@@ -115,5 +115,5 @@ class TaskFlowApp {
 
 }
 
-// initialize application
+// go
 new TaskFlowApp();
