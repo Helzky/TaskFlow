@@ -77,7 +77,10 @@ class TaskFlowApp {
     
     this.taskForm.addEventListener('submit', (e) => {
       e.preventDefault();
-      this.saveTask.bind(this)();
+      // Only save if the due date is valid or not set
+      if (this.validateDueDate()) {
+        this.saveTask.bind(this)();
+      }
     });
     
     
@@ -116,6 +119,12 @@ class TaskFlowApp {
       input.addEventListener('click', () => {
         
       });
+    });
+    
+    // Add event listener for due date validation
+    const dueDateInput = document.getElementById('task-due-date');
+    dueDateInput.addEventListener('change', () => {
+      this.validateDueDate();
     });
     
     // handle task actions
@@ -702,6 +711,34 @@ class TaskFlowApp {
   
   capitalizeFirstLetter(string) {
     return string.charAt(0).toUpperCase() + string.slice(1);
+  }
+  
+  validateDueDate() {
+    const dueDateInput = document.getElementById('task-due-date');
+    const dueDateError = document.getElementById('due-date-error');
+    const saveButton = document.getElementById('save-task');
+    
+    // Reset validation state
+    dueDateError.classList.add('hidden');
+    saveButton.disabled = false;
+    
+    // If no due date is set, it's valid
+    if (!dueDateInput.value) {
+      return true;
+    }
+    
+    // Compare with current time
+    const selectedDate = new Date(dueDateInput.value);
+    const currentDate = new Date();
+    
+    // If due date is in the past
+    if (selectedDate < currentDate) {
+      dueDateError.classList.remove('hidden');
+      saveButton.disabled = true;
+      return false;
+    }
+    
+    return true;
   }
   
   // Sound playback using the main process sound system

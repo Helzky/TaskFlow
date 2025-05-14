@@ -55,6 +55,19 @@ body {
   background: transparent;
 }
 
+/* hidden elements */
+.hidden {
+  display: none;
+}
+
+/* input error message */
+.input-error {
+  color: var(--danger-color);
+  font-size: 0.85rem;
+  margin-top: 4px;
+  animation: fadeIn 0.2s ease-in-out;
+}
+
 /* layout */
 .app-container {
   display: flex;
@@ -395,16 +408,19 @@ body {
 
 /* Buttons */
 .btn {
-  padding: 8px 16px;
-  border-radius: 6px;
-  font-weight: 500;
-  font-size: 0.9rem;
-  cursor: pointer;
+  padding: var(--spacing-sm) var(--spacing-md);
   transition: all var(--transition-fast);
   border: none;
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  justify-content: center;
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+  background-color: #555555;
 }
 
 .btn .material-icons {
