@@ -209,21 +209,24 @@ class TaskFlowApp {
     });
   }
   
-  getMonthAheadTasks() {
-    // Get tasks that are more than a month ahead
+  isTaskMonthAhead(task) {
+    // Check if a task's due date is more than a month ahead
+    if (!task.dueDate) return false;
+    
     const today = new Date();
     const monthAhead = new Date();
     monthAhead.setMonth(today.getMonth() + 1);
     monthAhead.setHours(0, 0, 0, 0);
     
-    return this.tasks.filter(task => {
-      if (!task.dueDate) return false;
-      
-      const dueDate = new Date(task.dueDate);
-      dueDate.setHours(0, 0, 0, 0);
-      
-      return dueDate >= monthAhead;
-    });
+    const dueDate = new Date(task.dueDate);
+    dueDate.setHours(0, 0, 0, 0);
+    
+    return dueDate >= monthAhead;
+  }
+  
+  getMonthAheadTasks() {
+    // Get tasks that are more than a month ahead
+    return this.tasks.filter(task => this.isTaskMonthAhead(task));
   }
   
   renderUpcomingTasks(monthAheadTasks) {
@@ -445,9 +448,16 @@ class TaskFlowApp {
         const newTask = await window.api.tasks.add(taskData);
         this.tasks.push(newTask);
         
+        // Check if this task would go to the Upcoming Tasks section
+        const isMonthAheadTask = this.isTaskMonthAhead(newTask);
+        
         // Play sound effect and show notification
         // Sound functionality disabled
-        this.showNotification('Task Created', `New task "${title}" has been created`);
+        if (isMonthAheadTask) {
+          this.showNotification('Task Created', `Task "${title}" created and moved to Upcoming Tasks`, 'info');
+        } else {
+          this.showNotification('Task Created', `New task "${title}" has been created`, 'success');
+        }
       }
       
       // close modal and refresh task list
