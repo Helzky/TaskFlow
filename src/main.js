@@ -8,6 +8,8 @@ const store = new Store();
 class TaskFlowApp {
   constructor() {
     this.mainWindow = null;
+    
+    // Initialize the app
     this.init();
   }
 
@@ -16,14 +18,12 @@ class TaskFlowApp {
     app.on('ready', this.createWindow.bind(this));
     
     app.on('window-all-closed', () => {
-      // on macOS it's common to keep the app running until explicitly quit
       if (process.platform !== 'darwin') {
         app.quit();
       }
     });
     
     app.on('activate', () => {
-      // on macOS it's common to re-create a window when the dock icon is clicked
       if (this.mainWindow === null) {
         this.createWindow();
       }
@@ -32,6 +32,8 @@ class TaskFlowApp {
     // setup IPC listeners
     this.setupIpcListeners();
   }
+  
+
   
   createWindow() {
     this.mainWindow = new BrowserWindow({
@@ -53,7 +55,6 @@ class TaskFlowApp {
     // load the index.html file
     this.mainWindow.loadFile(path.join(__dirname, 'index.html'));
     
-    // open DevTools in development mode
     // this.mainWindow.webContents.openDevTools();
     
     // show window when ready to avoid flickering
@@ -105,12 +106,13 @@ class TaskFlowApp {
     
     // handle focus mode toggle
     ipcMain.handle('focus-mode:toggle', (event, enabled) => {
-      // in a real implementation, this would interact with OS to close apps
       // for the prototype we'll just track the state
       store.set('focusMode', enabled);
       return enabled;
     });
   }
+  
+
 }
 
 // initialize application

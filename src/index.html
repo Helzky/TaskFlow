@@ -5,8 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TaskFlow</title>
     <link rel="stylesheet" href="assets/css/styles.css">
+    <link rel="stylesheet" href="assets/css/toast.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 </head>
 <body>
     <div class="app-container">
@@ -16,7 +18,7 @@
             </div>
             <div class="header-controls">
                 <button id="focus-mode-toggle" class="focus-mode-btn">
-                    <span class="focus-mode-icon">🎯</span>
+                    <span class="focus-mode-icon"><i class="material-icons">center_focus_strong</i></span>
                     <span class="focus-mode-text">Focus Mode</span>
                 </button>
             </div>
@@ -27,31 +29,31 @@
                 <nav class="nav-menu">
                     <ul>
                         <li class="nav-item active" data-view="today">
-                            <span class="nav-icon">📅</span>
+                            <span class="nav-icon"><i class="material-icons">today</i></span>
                             <span class="nav-text">Today</span>
                         </li>
                         <li class="nav-item" data-view="upcoming">
-                            <span class="nav-icon">📆</span>
+                            <span class="nav-icon"><i class="material-icons">event</i></span>
                             <span class="nav-text">Upcoming</span>
                         </li>
                         <li class="nav-item" data-view="projects">
-                            <span class="nav-icon">📁</span>
+                            <span class="nav-icon"><i class="material-icons">folder</i></span>
                             <span class="nav-text">Projects</span>
                         </li>
                         <li class="nav-item" data-view="analytics">
-                            <span class="nav-icon">📊</span>
+                            <span class="nav-icon"><i class="material-icons">analytics</i></span>
                             <span class="nav-text">Analytics</span>
                         </li>
                     </ul>
                 </nav>
-                <button id="credits-button" class="credits-button">Credits</button>
+                <button id="credits-button" class="credits-button"><i class="material-icons">info</i> Credits</button>
             </aside>
 
             <section class="content">
                 <div class="view-container" id="today-view">
                     <div class="section-header">
                         <h2>Today's Tasks</h2>
-                        <button id="add-task-btn" class="btn primary">+ New Task</button>
+                        <button id="add-task-btn" class="btn primary"><i class="material-icons">add</i> New Task</button>
                     </div>
                     
                     <div class="tasks-container" id="tasks-list">
@@ -85,7 +87,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h3 id="modal-title">Add New Task</h3>
-                <button class="close-modal">&times;</button>
+                <button class="close-modal"><i class="material-icons">close</i></button>
             </div>
             <div class="modal-body">
                 <form id="task-form">
@@ -114,8 +116,8 @@
                     </div>
                     
                     <div class="form-actions">
-                        <button type="button" class="btn secondary" id="cancel-task">Cancel</button>
-                        <button type="submit" class="btn primary" id="save-task">Save Task</button>
+                        <button type="button" class="btn secondary" id="cancel-task"><i class="material-icons">cancel</i> Cancel</button>
+                        <button type="submit" class="btn primary" id="save-task"><i class="material-icons">save</i> Save Task</button>
                     </div>
                 </form>
             </div>
@@ -127,7 +129,7 @@
         <div class="modal-content credits-modal">
             <div class="modal-header">
                 <h3>Credits</h3>
-                <button class="close-modal">&times;</button>
+                <button class="close-modal"><i class="material-icons">close</i></button>
             </div>
             <div class="modal-body">
                 <p>TaskFlow, created & managed by Helzky</p>
@@ -151,8 +153,8 @@
                 </div>
             </div>
             <div class="task-actions">
-                <button class="task-edit btn-icon" title="Edit Task">✏️</button>
-                <button class="task-delete btn-icon" title="Delete Task">🗑️</button>
+                <button class="task-edit btn-icon" title="Edit Task"><i class="material-icons">edit</i></button>
+                <button class="task-delete btn-icon" title="Delete Task"><i class="material-icons">delete</i></button>
             </div>
         </div>
     </template>

@@ -7,13 +7,20 @@
     "start": "electron .",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "keywords": ["electron", "productivity", "task-management", "agenda"],
+  "keywords": [
+    "electron",
+    "productivity",
+    "task-management",
+    "agenda"
+  ],
   "author": "",
   "license": "ISC",
   "devDependencies": {
     "electron": "^28.1.0"
   },
   "dependencies": {
-    "electron-store": "^8.1.0"
+    "electron-store": "^8.1.0",
+    "howler": "^2.2.4",
+    "play-sound": "^1.1.6"
   }
 }

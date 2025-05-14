@@ -166,9 +166,14 @@ body {
 
 .nav-icon {
   margin-right: var(--spacing-md);
-  font-size: 1.2rem;
   color: #888888;
   opacity: 0.8;
+  display: flex;
+  align-items: center;
+}
+
+.nav-icon .material-icons {
+  font-size: 22px;
 }
 
 .nav-item.active .nav-icon {
@@ -289,8 +294,11 @@ body {
 }
 
 .task-due-date::before {
-  content: '⏰';
+  font-family: 'Material Icons';
+  content: 'schedule';
   margin-right: 4px;
+  font-size: 16px;
+  vertical-align: middle;
 }
 
 .task-priority {
@@ -323,9 +331,15 @@ body {
   background: none;
   border: none;
   cursor: pointer;
-  font-size: 1rem;
   opacity: 0.6;
   transition: opacity var(--transition-fast);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-icon .material-icons {
+  font-size: 20px;
 }
 
 .btn-icon:hover {
@@ -348,6 +362,13 @@ body {
   cursor: pointer;
   transition: all var(--transition-fast);
   border: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.btn .material-icons {
+  font-size: 18px;
 }
 
 .primary {
@@ -408,6 +429,12 @@ body {
 
 .focus-mode-icon {
   margin-right: var(--spacing-sm);
+  display: flex;
+  align-items: center;
+}
+
+.focus-mode-icon .material-icons {
+  font-size: 20px;
 }
 
 /* Modal */
@@ -451,9 +478,16 @@ body {
 .close-modal {
   background: none;
   border: none;
-  font-size: 1.5rem;
   cursor: pointer;
-  line-height: 1;
+  color: var(--text-light);
+  transition: color var(--transition-fast);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.close-modal .material-icons {
+  font-size: 24px;
 }
 
 .modal-body {
@@ -500,7 +534,7 @@ textarea {
 
 /* Credits Button */
 .credits-button {
-  font-size: 0.8rem;
+  font-size: 0.9rem;
   opacity: 0.6;
   cursor: pointer;
   transition: all var(--transition-medium);
@@ -508,8 +542,15 @@ textarea {
   background: none;
   border: none;
   margin: 15px;
-  padding: 5px 0;
+  padding: 8px 12px;
   text-align: left;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.credits-button .material-icons {
+  font-size: 18px;
 }
 
 .credits-button:hover {

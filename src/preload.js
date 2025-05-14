@@ -1,4 +1,5 @@
 const { contextBridge, ipcRenderer } = require('electron');
+const path = require('path');
 
 // expose protected methods that allow the renderer process to use
 // the ipcRenderer without exposing the entire object
@@ -13,10 +14,7 @@ contextBridge.exposeInMainWorld('api', {
     toggle: (enabled) => ipcRenderer.invoke('focus-mode:toggle', enabled)
   },
   utils: {
-    // play a sound file from our assets
-    playSound: (soundName) => {
-      const audio = new Audio(`../assets/sounds/${soundName}.mp3`);
-      audio.play();
-    }
-  }
+    // For future utility functions
+  },
+  // Reserved for future extensions
 });

@@ -1,3 +1,5 @@
+// No longer need to require sound player - using IPC instead
+
 // main application class
 class TaskFlowApp {
   constructor() {
@@ -36,12 +38,14 @@ class TaskFlowApp {
   setupEventListeners() {
     // logo click to return to Today view
     this.appLogo.addEventListener('click', () => {
+      this.playSound('click');
       this.switchView('today');
     });
     
     // navigation
     this.navItems.forEach(item => {
       item.addEventListener('click', () => {
+        this.playSound('click');
         const view = item.dataset.view;
         this.switchView(view);
       });
@@ -49,6 +53,7 @@ class TaskFlowApp {
     
     // add task button
     document.getElementById('add-task-btn').addEventListener('click', () => {
+      this.playSound('click');
       this.openTaskModal();
     });
     
@@ -60,28 +65,40 @@ class TaskFlowApp {
     
     // cancel task button
     document.getElementById('cancel-task').addEventListener('click', () => {
+      this.playSound('cancel');
       this.closeTaskModal();
     });
     
     // close modal button
-    document.querySelector('.close-modal').addEventListener('click', () => {
-      this.closeTaskModal();
+    const closeModalBtns = document.querySelectorAll('.close-modal');
+    closeModalBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        this.playSound('cancel');
+        const modal = btn.closest('.modal');
+        if (modal) {
+          modal.classList.remove('open');
+        }
+      });
     });
     
     // focus mode toggle
     this.focusModeToggle.addEventListener('click', () => {
+      this.playSound('click');
       this.toggleFocusMode();
     });
     
     // credits button
     this.creditsButton.addEventListener('click', () => {
+      this.playSound('click');
       this.showCreditsModal();
     });
     
-    // close credits modal
-    const creditsCloseBtn = this.creditsModal.querySelector('.close-modal');
-    creditsCloseBtn.addEventListener('click', () => {
-      this.creditsModal.classList.remove('open');
+    // Add sound effect to form inputs
+    const formInputs = document.querySelectorAll('input, select, textarea');
+    formInputs.forEach(input => {
+      input.addEventListener('click', () => {
+        this.playSound('click');
+      });
     });
     
     // delegate task actions (complete, edit, delete)
@@ -297,7 +314,7 @@ class TaskFlowApp {
     }, 100);
     
     // play sound effect
-    this.playSound('modal-open');
+    this.playSound('click');
   }
   
   closeTaskModal() {
@@ -307,8 +324,7 @@ class TaskFlowApp {
   
   showCreditsModal() {
     this.creditsModal.classList.add('open');
-    // play sound effect
-    this.playSound('modal-open');
+    this.playSound('click');
   }
   
   async saveTask() {
@@ -344,14 +360,19 @@ class TaskFlowApp {
           this.tasks = this.tasks.map(t => 
             t.id === this.editingTaskId ? taskData : t
           );
+          
+          // Play sound effect and show notification
+          this.playSound('confirm');
+          this.showNotification('Task Updated', `Task "${title}" has been updated`);
         }
       } else {
         // add new task
         const newTask = await window.api.tasks.add(taskData);
         this.tasks.push(newTask);
         
-        // play sound effect
-        this.playSound('task-added');
+        // Play sound effect and show notification
+        this.playSound('confirm');
+        this.showNotification('Task Created', `New task "${title}" has been created`);
       }
       
       // close modal and refresh task list
@@ -359,7 +380,7 @@ class TaskFlowApp {
       this.renderTasks();
     } catch (error) {
       console.error('Error saving task:', error);
-      alert('Failed to save task. Please try again.');
+      this.showNotification('Error', 'Failed to save task. Please try again.');
     }
   }
   
@@ -378,12 +399,17 @@ class TaskFlowApp {
       // render updates
       this.renderTasks();
       
-      // play sound effect if completed
+      // play sound and show notification if completed
       if (isComplete) {
-        this.playSound('task-complete');
+        this.playSound('confirm');
+        this.showNotification('Task Completed', `Task "${task.title}" marked as complete`);
+      } else {
+        this.playSound('click');
+        this.showNotification('Task Reopened', `Task "${task.title}" marked as incomplete`);
       }
     } catch (error) {
       console.error('Error updating task:', error);
+      this.showNotification('Error', 'Failed to update task status');
     }
   }
   
@@ -396,6 +422,10 @@ class TaskFlowApp {
     if (!confirm('Are you sure you want to delete this task?')) return;
     
     try {
+      // Get task details before deletion
+      const task = this.tasks.find(t => t.id === taskId);
+      if (!task) return;
+      
       // delete from storage
       await window.api.tasks.delete(taskId);
       
@@ -405,10 +435,12 @@ class TaskFlowApp {
       // render updates
       this.renderTasks();
       
-      // play sound effect
-      this.playSound('task-deleted');
+      // Play sound and show notification
+      this.playSound('cancel');
+      this.showNotification('Task Deleted', `Task "${task.title}" has been deleted`);
     } catch (error) {
       console.error('Error deleting task:', error);
+      this.showNotification('Error', 'Failed to delete task');
     }
   }
   
@@ -429,16 +461,17 @@ class TaskFlowApp {
       // apply visual effects
       document.body.classList.toggle('focus-mode', this.focusModeActive);
       
-      // play sound effect
-      this.playSound(this.focusModeActive ? 'focus-mode-on' : 'focus-mode-off');
-      
-      // show notification
-      this.showNotification(
-        this.focusModeActive ? 'Focus Mode Activated' : 'Focus Mode Deactivated',
-        this.focusModeActive ? 'Distractions minimized. Stay focused!' : 'You can now return to normal mode.'
-      );
+      // play sound and show notification
+      if (this.focusModeActive) {
+        this.playSound('confirm');
+        this.showNotification('Focus Mode Activated', 'Distractions minimized. Stay focused!');
+      } else {
+        this.playSound('click');
+        this.showNotification('Focus Mode Deactivated', 'You can now return to normal mode.');
+      }
     } catch (error) {
       console.error('Error toggling focus mode:', error);
+      this.showNotification('Error', 'Failed to toggle focus mode');
     }
   }
   
@@ -477,18 +510,22 @@ class TaskFlowApp {
     return string.charAt(0).toUpperCase() + string.slice(1);
   }
   
-  playSound(soundName) {
+  // Sound playback using the main process sound system
+  playSound(category, randomize = true) {
     try {
-      // call the preload api to play sound
-      window.api.utils.playSound(soundName);
+      // Use the main process sound system via IPC
+      window.api.sound.play(category, randomize)
+        .catch(error => {
+          console.warn('Error playing sound via IPC:', error);
+        });
     } catch (error) {
-      // fail silently - sounds are non-critical
-      console.warn('Failed to play sound:', error);
+      // Fail silently - sounds are non-critical
+      console.warn('Error in playSound method:', error);
     }
   }
   
   showNotification(title, message) {
-    // create notification element
+    // Create notification element
     const notification = document.createElement('div');
     notification.className = 'notification animate__fadeIn';
     notification.innerHTML = `
@@ -498,16 +535,19 @@ class TaskFlowApp {
       </div>
     `;
     
-    // add to document
+    // Add to document
     document.body.appendChild(notification);
     
-    // remove after delay
+    // Remove after delay
     setTimeout(() => {
       notification.classList.add('animate__fadeOut');
       setTimeout(() => {
         notification.remove();
       }, 300);
     }, 3000);
+    
+    // Play notification sound
+    this.playSound('notification', true);
   }
 }
 
