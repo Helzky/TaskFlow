@@ -8,6 +8,7 @@ class TaskFlowApp {
     this.tasks = [];
     this.editingTaskId = null;
     this.focusModeActive = false;
+    this.isLoading = true;
     
     // dom refs
     this.tasksList = document.getElementById('tasks-list');
@@ -26,6 +27,11 @@ class TaskFlowApp {
   }
   
   async init() {
+    // Hide all view containers initially during loading
+    this.viewContainers.forEach(container => {
+      container.style.visibility = 'hidden';
+    });
+    
     // get stored tasks
     await this.loadTasks();
     
@@ -34,6 +40,16 @@ class TaskFlowApp {
     
     // render tasks
     this.renderTasks();
+    
+    // Show the initial view after everything is loaded
+    setTimeout(() => {
+      this.isLoading = false;
+      this.viewContainers.forEach(container => {
+        if (!container.classList.contains('hidden')) {
+          container.style.visibility = 'visible';
+        }
+      });
+    }, 100);
   }
   
   setupEventListeners() {
@@ -344,22 +360,44 @@ class TaskFlowApp {
   }
   
   switchView(view) {
-    // update current view
-    this.currentView = view;
+    if (this.isLoading) return;
     
-    // update active nav item
+    // Don't do anything if we're already on this view
+    if (this.currentView === view) return;
+    
+    // update active nav item immediately
     this.navItems.forEach(item => {
       item.classList.toggle('active', item.dataset.view === view);
     });
     
-    // update visible view container
-    this.viewContainers.forEach(container => {
-      const containerId = container.id;
-      container.classList.toggle('hidden', containerId !== `${view}-view`);
-    });
-    
-    // re-render tasks for the new view
-    this.renderTasks();
+    // Hide the current view first
+    const currentViewContainer = document.getElementById(`${this.currentView}-view`);
+    if (currentViewContainer) {
+      currentViewContainer.style.visibility = 'hidden';
+      
+      // Use setTimeout to ensure smooth transitions
+      setTimeout(() => {
+        // update current view state
+        this.currentView = view;
+        
+        // Hide all containers
+        this.viewContainers.forEach(container => {
+          container.classList.toggle('hidden', container.id !== `${view}-view`);
+          container.style.visibility = 'hidden';
+        });
+        
+        // re-render tasks for the new view
+        this.renderTasks();
+        
+        // Show the new container after a slight delay
+        setTimeout(() => {
+          const newViewContainer = document.getElementById(`${view}-view`);
+          if (newViewContainer) {
+            newViewContainer.style.visibility = 'visible';
+          }
+        }, 50);
+      }, 100);
+    }
   }
   
   openTaskModal(taskId = null) {

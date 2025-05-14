@@ -39,6 +39,10 @@
   gap: var(--spacing-md);
 }
 
+.cancel-delete {
+  color: white;
+}
+
 .confirm-delete {
   background-color: var(--danger-color);
   color: white;
