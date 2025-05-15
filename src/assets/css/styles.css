@@ -576,6 +576,32 @@ select {
   color: var(--text-color);
 }
 
+/* Calendar date picker styling for Webkit browsers (Chrome, Safari, Edge) */
+input[type="datetime-local"]::-webkit-calendar-picker-indicator {
+  background-color: var(--accent-color);
+  padding: 5px;
+  cursor: pointer;
+  border-radius: 3px;
+  filter: invert(0.8);
+}
+
+/* Dark theme calendar styling */
+input[type="datetime-local"]::-webkit-datetime-edit {
+  color: var(--text-color);
+}
+
+/* Firefox and other browser styles */
+@supports (color-scheme: dark) {
+  input[type="datetime-local"] {
+    color-scheme: dark;
+  }
+}
+
+/* Force calendar popup theme consistency */
+:root {
+  color-scheme: dark;
+}
+
 textarea {
   min-height: 100px;
   resize: vertical;
