@@ -1,16 +1,16 @@
-// sound stuff uses ipc now
+// sound stuff disabled for now
 
-// main app class
+// main app stuff
 class TaskFlowApp {
   constructor() {
-    // app state
+    // state
     this.currentView = 'today';
     this.tasks = [];
     this.editingTaskId = null;
     this.focusModeActive = false;
     this.isLoading = true;
     
-    // dom refs
+    // dom elements
     this.tasksList = document.getElementById('tasks-list');
     this.upcomingTasksList = document.getElementById('upcoming-tasks-list');
     this.taskModal = document.getElementById('task-modal');
@@ -22,34 +22,144 @@ class TaskFlowApp {
     this.creditsButton = document.getElementById('credits-button');
     this.creditsModal = document.getElementById('credits-modal');
     
-    // init
+    // kick things off
     this.init();
   }
   
   async init() {
-    // Hide all view containers initially during loading
+    // grab splash screen
+    this.splashScreen = document.getElementById('splash-screen');
+    
+    // hide everything while loading
     this.viewContainers.forEach(container => {
       container.style.visibility = 'hidden';
     });
     
-    // get stored tasks
+    // load stuff in background
     await this.loadTasks();
-    
-    // setup events
     this.setupEventListeners();
-    
-    // render tasks
     this.renderTasks();
     
-    // Show the initial view after everything is loaded
+    this.playStartupAnimation();
+  }
+  
+  playStartupAnimation() {
+    // random glow start position
+    this.setRandomGlowPath();
+    
+    // animation takes about 2.8s total
+    const splashAnimationDuration = 2800;
+    
     setTimeout(() => {
-      this.isLoading = false;
-      this.viewContainers.forEach(container => {
-        if (!container.classList.contains('hidden')) {
-          container.style.visibility = 'visible';
+      // fade splash out
+      this.splashScreen.classList.add('fade-out');
+      
+      // show app
+      const appContainer = document.querySelector('.app-container');
+      appContainer.classList.add('visible');
+      
+      setTimeout(() => {
+        this.isLoading = false;
+        this.viewContainers.forEach(container => {
+          if (!container.classList.contains('hidden')) {
+            container.style.visibility = 'visible';
+          }
+        });
+        
+        // cleanup
+        setTimeout(() => {
+          this.splashScreen.remove();
+        }, 500);
+      }, 400);
+    }, splashAnimationDuration);
+  }
+  
+  setRandomGlowPath() {
+    // find the glow
+    const travelingGlow = document.querySelector('.traveling-glow');
+    if (!travelingGlow) return;
+    
+    // start from screen edge - a bit off-screen for smooth entry
+    const positions = [
+      { top: `${this.getRandomInt(-25, -10)}%`, left: `${this.getRandomInt(-10, 110)}%` }, // top
+      { top: `${this.getRandomInt(110, 125)}%`, left: `${this.getRandomInt(-10, 110)}%` }, // bottom
+      { top: `${this.getRandomInt(-10, 110)}%`, left: `${this.getRandomInt(-25, -10)}%` }, // left
+      { top: `${this.getRandomInt(-10, 110)}%`, left: `${this.getRandomInt(110, 125)}%` }  // right
+    ];
+    
+    // pick random edge
+    const randomPosition = positions[Math.floor(Math.random() * positions.length)];
+    
+    // place it
+    travelingGlow.style.top = randomPosition.top;
+    travelingGlow.style.left = randomPosition.left;
+    
+    // waypoints for natural motion
+    const controlPoints = [
+      { x: this.getRandomInt(15, 85), y: this.getRandomInt(15, 85) }, // entry
+      { x: this.getRandomInt(25, 75), y: this.getRandomInt(25, 75) }, // mid
+      { x: this.getRandomInt(40, 60), y: this.getRandomInt(40, 60) }, // approaching
+      { x: this.getRandomInt(45, 55), y: this.getRandomInt(45, 55) }  // almost there
+    ];
+    
+    // create keyframes for animation
+    const keyframesStyle = document.createElement('style');
+    keyframesStyle.textContent = `
+      @keyframes windyPath {
+        0% {
+          top: ${randomPosition.top};
+          left: ${randomPosition.left};
+          opacity: 0.3;
+          width: 60px;
+          height: 60px;
         }
-      });
-    }, 100);
+        15% {
+          top: ${controlPoints[0].y}%;
+          left: ${controlPoints[0].x}%;
+          opacity: 0.4;
+          width: 70px;
+          height: 70px;
+        }
+        35% {
+          top: ${controlPoints[1].y}%;
+          left: ${controlPoints[1].x}%;
+          opacity: 0.6;
+          width: 80px;
+          height: 80px;
+        }
+        60% {
+          top: ${controlPoints[2].y}%;
+          left: ${controlPoints[2].x}%;
+          opacity: 0.75;
+          width: 90px;
+          height: 90px;
+        }
+        85% {
+          top: ${controlPoints[3].y}%;
+          left: ${controlPoints[3].x}%;
+          opacity: 0.9;
+          width: 100px;
+          height: 100px;
+        }
+        100% {
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+          opacity: 1;
+          width: 110px;
+          height: 110px;
+        }
+      }
+    `;
+    document.head.appendChild(keyframesStyle);
+    
+    // smoother motion with cubic-bezier
+    travelingGlow.style.animation = 'windyPath 1.8s forwards cubic-bezier(0.25, 0.1, 0.25, 1)';
+  }
+  
+  // get random num
+  getRandomInt(min, max) {
+    return Math.floor(Math.random() * (max - min + 1)) + min;
   }
   
   setupEventListeners() {
@@ -121,13 +231,13 @@ class TaskFlowApp {
       });
     });
     
-    // Add event listener for due date validation
+    // date validation
     const dueDateInput = document.getElementById('task-due-date');
     dueDateInput.addEventListener('change', () => {
       this.validateDueDate();
     });
     
-    // handle task actions
+    // task actions handler
     const handleTaskAction = (e) => {
       const taskItem = e.target.closest('.task-item');
       if (!taskItem) return;
@@ -164,7 +274,7 @@ class TaskFlowApp {
   
   async loadTasks() {
     try {
-      
+      // grab from storage
       this.tasks = await window.api.tasks.getAll();
     } catch (error) {
       console.error('Error loading tasks:', error);
@@ -173,24 +283,23 @@ class TaskFlowApp {
   }
   
   renderTasks() {
-    // grab tasks for upcoming month
+    // far future tasks
     const monthAheadTasks = this.getMonthAheadTasks();
-    
     
     if (this.currentView !== 'upcoming') {
       this.renderUpcomingTasks(monthAheadTasks);
     }
     
-    
+    // get the right container
     const currentTasksList = this.currentView === 'upcoming' ? this.upcomingTasksList : this.tasksList;
     currentTasksList.innerHTML = '';
     
-    
+    // filter based on view
     const filteredTasks = this.currentView === 'upcoming' ? 
       monthAheadTasks : this.filterTasksByView();
     
     if (filteredTasks.length === 0) {
-      
+      // show empty state
       const emptyState = document.createElement('div');
       emptyState.className = 'empty-state';
       const emptyStateMessage = this.currentView === 'today' ? 
@@ -201,20 +310,20 @@ class TaskFlowApp {
       return;
     }
     
-    // sort by completion -> priority -> date
+    // sort tasks (completed last, then by priority, then by date)
     const sortedTasks = [...filteredTasks].sort((a, b) => {
-      
+      // completed tasks go last
       if (a.completed !== b.completed) {
         return a.completed ? 1 : -1;
       }
       
-      
+      // priority order
       const priorityOrder = { high: 0, medium: 1, low: 2 };
       if (a.priority !== b.priority) {
         return priorityOrder[a.priority] - priorityOrder[b.priority];
       }
       
-      
+      // date order
       if (a.dueDate && b.dueDate) {
         return new Date(a.dueDate) - new Date(b.dueDate);
       }
@@ -222,12 +331,12 @@ class TaskFlowApp {
       return 0;
     });
     
-    
+    // add to dom
     sortedTasks.forEach(task => {
       const taskElement = this.createTaskElement(task);
       currentTasksList.appendChild(taskElement);
       
-      // add slide-in animation
+      // animate in
       setTimeout(() => {
         taskElement.classList.add('animate__slideIn');
       }, 10);
@@ -235,7 +344,7 @@ class TaskFlowApp {
   }
   
   isTaskMonthAhead(task) {
-    // Check if a task's due date is more than a month ahead
+    // is it due more than a month from now?
     if (!task.dueDate) return false;
     
     const today = new Date();
@@ -250,21 +359,21 @@ class TaskFlowApp {
   }
   
   getMonthAheadTasks() {
-    // Get tasks that are more than a month ahead
+    // tasks due more than a month away
     return this.tasks.filter(task => this.isTaskMonthAhead(task));
   }
   
   renderUpcomingTasks(monthAheadTasks) {
-    // Render tasks that are more than a month ahead
+    // show tasks in upcoming section
     if (!this.upcomingTasksList) return;
     
     this.upcomingTasksList.innerHTML = '';
     
     if (monthAheadTasks.length === 0) {
-      return; // Don't add empty state, keep the info text visible
+      return; // keep info text visible instead of empty state
     }
     
-    // sort tasks by due date
+    // sort by date
     const sortedTasks = [...monthAheadTasks].sort((a, b) => {
       return new Date(a.dueDate) - new Date(b.dueDate);
     });
@@ -277,15 +386,15 @@ class TaskFlowApp {
   }
   
   filterTasksByView() {
-    // tasks filtering logic based on current view
+    // filter stuff based on which tab we're in
     switch (this.currentView) {
       case 'today':
-        // show tasks due today or overdue
+        // today or overdue stuff
         const today = new Date();
         today.setHours(0, 0, 0, 0);
         
         return this.tasks.filter(task => {
-          if (!task.dueDate) return true; // tasks with no due date are shown
+          if (!task.dueDate) return true; // no date = show it
           
           const dueDate = new Date(task.dueDate);
           dueDate.setHours(0, 0, 0, 0);
@@ -294,7 +403,7 @@ class TaskFlowApp {
         });
         
       case 'upcoming':
-        // We specifically want tasks more than a month ahead when viewing the upcoming tab
+        // far future stuff (>1mo)
         return this.getMonthAheadTasks();
         
       default:
@@ -303,22 +412,22 @@ class TaskFlowApp {
   }
   
   createTaskElement(task) {
-    // clone the task template
+    // grab template
     const template = document.getElementById('task-item-template');
     const taskElement = template.content.cloneNode(true).querySelector('.task-item');
     
-    // set task data
+    // id for data attrs
     taskElement.dataset.id = task.id;
     
-    // set checkbox state
+    // checkbox
     const checkbox = taskElement.querySelector('.task-complete-checkbox');
     checkbox.checked = task.completed || false;
     
-    // set title with strikethrough if completed
+    // title
     const titleElement = taskElement.querySelector('.task-title');
     titleElement.textContent = task.title;
     
-    // set description if exists
+    // description (if any)
     const descriptionElement = taskElement.querySelector('.task-description');
     if (task.description) {
       descriptionElement.textContent = task.description;
@@ -326,13 +435,13 @@ class TaskFlowApp {
       descriptionElement.remove();
     }
     
-    // set due date if exists
+    // due date
     const dueDateElement = taskElement.querySelector('.task-due-date');
     if (task.dueDate) {
       const dueDate = new Date(task.dueDate);
       dueDateElement.textContent = this.formatDate(dueDate);
       
-      // highlight if overdue
+      // red for overdue
       const today = new Date();
       if (dueDate < today && !task.completed) {
         dueDateElement.style.color = 'var(--danger-color)';
@@ -341,12 +450,12 @@ class TaskFlowApp {
       dueDateElement.remove();
     }
     
-    // set priority
+    // priority tag
     const priorityElement = taskElement.querySelector('.task-priority');
     priorityElement.textContent = this.capitalizeFirstLetter(task.priority || 'medium');
     priorityElement.dataset.priority = task.priority || 'medium';
     
-    // Apply strikethrough effect to all task content if completed
+    // strikethrough completed stuff
     if (task.completed) {
       titleElement.style.textDecoration = 'line-through';
       titleElement.style.opacity = '0.6';
@@ -371,34 +480,33 @@ class TaskFlowApp {
   switchView(view) {
     if (this.isLoading) return;
     
-    // Don't do anything if we're already on this view
+    // bail if already on this view
     if (this.currentView === view) return;
     
-    // update active nav item immediately
+    // highlight right nav item
     this.navItems.forEach(item => {
       item.classList.toggle('active', item.dataset.view === view);
     });
     
-    // Hide the current view first
+    // hide current stuff first
     const currentViewContainer = document.getElementById(`${this.currentView}-view`);
     if (currentViewContainer) {
       currentViewContainer.style.visibility = 'hidden';
       
-      // Use setTimeout to ensure smooth transitions
+      // need timeouts for smooth transitions
       setTimeout(() => {
-        // update current view state
         this.currentView = view;
         
-        // Hide all containers
+        // hide everything
         this.viewContainers.forEach(container => {
           container.classList.toggle('hidden', container.id !== `${view}-view`);
           container.style.visibility = 'hidden';
         });
         
-        // re-render tasks for the new view
+        // get tasks for new view
         this.renderTasks();
         
-        // Show the new container after a slight delay
+        // show new container after tiny delay
         setTimeout(() => {
           const newViewContainer = document.getElementById(`${view}-view`);
           if (newViewContainer) {
@@ -412,14 +520,14 @@ class TaskFlowApp {
   openTaskModal(taskId = null) {
     this.editingTaskId = taskId;
     
-    // clear form
+    // reset inputs
     this.taskForm.reset();
     
-    // set modal title
+    // title based on add/edit mode
     const modalTitle = document.getElementById('modal-title');
     modalTitle.textContent = taskId ? 'Edit Task' : 'Add New Task';
     
-    // if editing, populate form with task data
+    // fill form if editing
     if (taskId) {
       const task = this.tasks.find(t => t.id === taskId);
       if (task) {
@@ -430,16 +538,13 @@ class TaskFlowApp {
       }
     }
     
-    // open modal
+    // show it
     this.taskModal.classList.add('open');
     
-    // focus on title input
+    // focus title field
     setTimeout(() => {
       document.getElementById('task-title').focus();
     }, 100);
-    
-    // play sound effect
-    
   }
   
   closeTaskModal() {
@@ -453,13 +558,13 @@ class TaskFlowApp {
   }
   
   async saveTask() {
-    // gather form data
+    // grab form stuff
     const title = document.getElementById('task-title').value.trim();
     const description = document.getElementById('task-description').value.trim();
     const dueDate = document.getElementById('task-due-date').value;
     const priority = document.getElementById('task-priority').value;
     
-    if (!title) return; // don't save empty tasks
+    if (!title) return; // need a title at least
     
     const taskData = {
       title,
@@ -471,34 +576,29 @@ class TaskFlowApp {
     
     try {
       if (this.editingTaskId) {
-        // update existing task
+        // editing existing
         const existingTask = this.tasks.find(t => t.id === this.editingTaskId);
         if (existingTask) {
-          // preserve completion status
+          // keep completion status
           taskData.completed = existingTask.completed;
           
-          // update task
           taskData.id = this.editingTaskId;
           await window.api.tasks.update(taskData);
           
-          // update local tasks array
+          // update local state
           this.tasks = this.tasks.map(t => 
             t.id === this.editingTaskId ? taskData : t
           );
           
-          // Play sound effect and show notification
-          
           this.showNotification('Task Updated', `Task "${title}" has been updated`);
         }
       } else {
-        // add new task
+        // new task
         const newTask = await window.api.tasks.add(taskData);
         this.tasks.push(newTask);
         
-        // Check if this task would go to the Upcoming Tasks section
+        // check if it'll go in upcoming
         const isMonthAheadTask = this.isTaskMonthAhead(newTask);
-        
-        // Play sound effect and show notification
         
         if (isMonthAheadTask) {
           this.showNotification('Task Created', `Task "${title}" created and moved to Upcoming Tasks`, 'info');
@@ -507,7 +607,7 @@ class TaskFlowApp {
         }
       }
       
-      // close modal and refresh task list
+      // cleanup and refresh
       this.closeTaskModal();
       this.renderTasks();
     } catch (error) {
@@ -518,17 +618,17 @@ class TaskFlowApp {
   
   async toggleTaskComplete(taskId, isComplete) {
     try {
-      // find the task
+      // get task
       const task = this.tasks.find(t => t.id === taskId);
       if (!task) return;
       
-      // update task completion status
+      // flip status
       task.completed = isComplete;
       
-      // save to storage
+      // persist to db
       await window.api.tasks.update(task);
       
-      // Apply strikethrough immediately for better UX
+      // instant visual update
       const taskElement = document.querySelector(`.task-item[data-id="${taskId}"]`);
       if (taskElement) {
         const titleElement = taskElement.querySelector('.task-title');
@@ -564,17 +664,15 @@ class TaskFlowApp {
         }
       }
       
-      // Render updates after a short delay for smoother transition
+      // re-render after a moment
       setTimeout(() => {
         this.renderTasks();
       }, 300);
       
-      // play sound and show notification if completed
+      // notify user
       if (isComplete) {
-        
         this.showNotification('Task Completed', `Task "${task.title}" marked as complete`);
       } else {
-        
         this.showNotification('Task Reopened', `Task "${task.title}" marked as incomplete`);
       }
     } catch (error) {
@@ -589,11 +687,11 @@ class TaskFlowApp {
   
   async deleteTask(taskId) {
     try {
-      // Get task details before deletion
+      // grab the task
       const task = this.tasks.find(t => t.id === taskId);
       if (!task) return;
       
-      // Create custom confirmation dialog
+      // make confirmation dialog
       const modalOverlay = document.createElement('div');
       modalOverlay.className = 'modal-overlay';
       
@@ -612,7 +710,7 @@ class TaskFlowApp {
       modalOverlay.appendChild(confirmDialog);
       document.body.appendChild(modalOverlay);
       
-      // Add event listeners to buttons
+      // button handlers
       return new Promise((resolve) => {
         const cancelButton = confirmDialog.querySelector('.cancel-delete');
         const confirmButton = confirmDialog.querySelector('.confirm-delete');
@@ -623,16 +721,14 @@ class TaskFlowApp {
         });
         
         confirmButton.addEventListener('click', async () => {
-          // delete from storage
+          // remove from db
           await window.api.tasks.delete(taskId);
           
-          // remove from local array
+          // remove locally
           this.tasks = this.tasks.filter(t => t.id !== taskId);
           
-          // render updates
+          // update ui
           this.renderTasks();
-          
-          // Play sound and show notification
           
           this.showNotification('Task Deleted', `Task "${task.title}" has been deleted`);
           
@@ -650,26 +746,23 @@ class TaskFlowApp {
   async toggleFocusMode() {
     this.focusModeActive = !this.focusModeActive;
     
-    // toggle active class
+    // ui button state
     this.focusModeToggle.classList.toggle('active', this.focusModeActive);
     
-    // update text
+    // button text
     const textElement = this.focusModeToggle.querySelector('.focus-mode-text');
     textElement.textContent = this.focusModeActive ? 'Exit Focus Mode' : 'Focus Mode';
     
     try {
-      // send to main process
+      // store to electron
       await window.api.focusMode.toggle(this.focusModeActive);
       
-      // apply visual effects
+      // visual changes
       document.body.classList.toggle('focus-mode', this.focusModeActive);
       
-      // play sound and show notification
       if (this.focusModeActive) {
-        
         this.showNotification('Focus Mode Activated', 'Distractions minimized. Stay focused!');
       } else {
-        
         this.showNotification('Focus Mode Deactivated', 'You can now return to normal mode.');
       }
     } catch (error) {
@@ -678,10 +771,10 @@ class TaskFlowApp {
     }
   }
   
-  // utility methods
+  // helper functions
   
   formatDate(date) {
-    // today, tomorrow, or date format
+    // friendly date display
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     
@@ -741,18 +834,14 @@ class TaskFlowApp {
     return true;
   }
   
-  // Sound playback using the main process sound system
+  // sound - disabled for now
   playSound(category, randomize = true) {
-    // Sound functionality is completely disabled
-    // This is an empty no-op function that doesn't do anything
-    // The original implementation has been fully removed to prevent any errors
-    
-    // When sound functionality is restored, implement actual sound code here
-    return Promise.resolve(); // Return a resolved promise to maintain async behavior
+    // empty function - sounds were causing app to freeze
+    return Promise.resolve(); // keep async interface
   }
   
   showNotification(title, message, type = 'success') {
-    // Check for existing toast container or create one
+    // find or create toast container
     let toastContainer = document.querySelector('.toast-container');
     if (!toastContainer) {
       toastContainer = document.createElement('div');
@@ -760,11 +849,11 @@ class TaskFlowApp {
       document.body.appendChild(toastContainer);
     }
     
-    // Create toast element
+    // make the toast
     const toast = document.createElement('div');
     toast.className = `toast toast-${type} animate__animated animate__fadeInUp`;
     
-    // Set toast content
+    // add content
     toast.innerHTML = `
       <div class="toast-header">
         <h4>${title}</h4>
@@ -775,32 +864,29 @@ class TaskFlowApp {
       </div>
     `;
     
-    // Add to container
     toastContainer.appendChild(toast);
     
-    // Add close button functionality
+    // close button
     const closeButton = toast.querySelector('.toast-close');
     closeButton.addEventListener('click', () => {
       this.removeToast(toast);
     });
     
-    // Auto-remove after delay
+    // auto dismiss
     setTimeout(() => {
       this.removeToast(toast);
     }, 4000);
-    
-    // Sound functionality has been disabled
   }
   
   removeToast(toast) {
-    // If already being removed, return
+    // bail if already fading
     if (toast.classList.contains('animate__fadeOutDown')) return;
     
-    // Apply exit animation
+    // fade out
     toast.classList.remove('animate__fadeInUp');
     toast.classList.add('animate__fadeOutDown');
     
-    // Remove after animation completes
+    // cleanup when done
     setTimeout(() => {
       if (toast.parentNode) {
         toast.parentNode.removeChild(toast);
@@ -809,7 +895,7 @@ class TaskFlowApp {
   }
 }
 
-// start when loaded
+// init app when dom ready
 document.addEventListener('DOMContentLoaded', () => {
   const app = new TaskFlowApp();
 });

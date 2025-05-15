@@ -1,4 +1,4 @@
-// handles toast notifications
+// popup notifications
 class ToastManager {
   constructor(soundManager) {
     this.soundManager = soundManager;
@@ -6,7 +6,7 @@ class ToastManager {
     this.createToastContainer();
   }
   
-  // make toast container
+  // create container if needed
   createToastContainer() {
     if (this.toastContainer) return;
     
@@ -15,13 +15,11 @@ class ToastManager {
     document.body.appendChild(this.toastContainer);
   }
   
-  // show a toast
+  // display notification
   show(title, message, type = 'success', playSound = true) {
-
     const toast = document.createElement('div');
     toast.className = `toast toast-${type} animate__animated animate__fadeInUp`;
     
-
     toast.innerHTML = `
       <div class="toast-header">
         <h4>${title}</h4>
@@ -32,36 +30,33 @@ class ToastManager {
       </div>
     `;
     
-
     this.toastContainer.appendChild(toast);
     
-    // sound if enabled
+    // sound disabled for now
     if (playSound && this.soundManager) {
       this.soundManager.play('notification', true);
     }
     
-
     const closeButton = toast.querySelector('.toast-close');
     closeButton.addEventListener('click', () => {
       this.removeToast(toast);
     });
     
-    // auto remove
+    // auto hide after 4s
     setTimeout(() => {
       this.removeToast(toast);
     }, 4000);
   }
   
-  // remove with animation
+  // animate out and remove
   removeToast(toast) {
-    // bail if already removing
+    // skip if already going away
     if (toast.classList.contains('animate__fadeOutDown')) return;
     
-
     toast.classList.remove('animate__fadeInUp');
     toast.classList.add('animate__fadeOutDown');
     
-
+    // remove from dom when animation done
     setTimeout(() => {
       if (toast.parentNode) {
         toast.parentNode.removeChild(toast);
@@ -69,21 +64,21 @@ class ToastManager {
     }, 300);
   }
   
-  // success toast
+  // green success notification
   success(title, message) {
     this.show(title, message, 'success', true);
   }
   
-  // error toast
+  // red error notification
   error(title, message) {
     this.show(title, message, 'error', true);
   }
   
-  // info toast
+  // blue info notification
   info(title, message) {
     this.show(title, message, 'info', true);
   }
 }
 
-// export
+// for imports
 module.exports = ToastManager;

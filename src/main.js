@@ -2,7 +2,7 @@ const { app, BrowserWindow, ipcMain } = require('electron');
 const path = require('path');
 const Store = require('electron-store');
 
-// storage
+// persistent storage
 const store = new Store();
 
 class TaskFlowApp {
@@ -14,7 +14,7 @@ class TaskFlowApp {
   }
 
   init() {
-    // app events
+    // core app lifecycle
     app.on('ready', this.createWindow.bind(this));
     
     app.on('window-all-closed', () => {
@@ -29,7 +29,7 @@ class TaskFlowApp {
       }
     });
     
-    // setup ipc
+    // message handlers
     this.setupIpcListeners();
   }
   
@@ -46,22 +46,20 @@ class TaskFlowApp {
         contextIsolation: true,
         preload: path.join(__dirname, 'preload.js')
       },
-      // nice look
       backgroundColor: '#f8f9fa',
-      show: false, // we'll show once ready for smoother UX
+      show: false, // hidden until ready to prevent flash
       icon: path.join(__dirname, 'assets/icons/app-icon.png'),
     });
     
-    
     this.mainWindow.loadFile(path.join(__dirname, 'index.html'));
     
+    // uncomment for debugging
     // this.mainWindow.webContents.openDevTools();
     
-    // avoid flicker
+    // show when ready
     this.mainWindow.once('ready-to-show', () => {
       this.mainWindow.show();
     });
-    
     
     this.mainWindow.on('closed', () => {
       this.mainWindow = null;
@@ -69,11 +67,12 @@ class TaskFlowApp {
   }
   
   setupIpcListeners() {
-    
+    // get all tasks
     ipcMain.handle('tasks:get', () => {
       return store.get('tasks', []);
     });
     
+    // add new task
     ipcMain.handle('tasks:add', (event, task) => {
       const tasks = store.get('tasks', []);
       const newTask = {
@@ -86,6 +85,7 @@ class TaskFlowApp {
       return newTask;
     });
     
+    // update existing task
     ipcMain.handle('tasks:update', (event, updatedTask) => {
       const tasks = store.get('tasks', []);
       const updatedTasks = tasks.map(task => 
@@ -96,6 +96,7 @@ class TaskFlowApp {
       return updatedTask;
     });
     
+    // delete task
     ipcMain.handle('tasks:delete', (event, taskId) => {
       const tasks = store.get('tasks', []);
       const filteredTasks = tasks.filter(task => task.id !== taskId);
@@ -104,9 +105,9 @@ class TaskFlowApp {
       return taskId;
     });
     
-    
+    // focus mode toggle
     ipcMain.handle('focus-mode:toggle', (event, enabled) => {
-      // just track state for now
+      // just save the state for now
       store.set('focusMode', enabled);
       return enabled;
     });
@@ -115,5 +116,5 @@ class TaskFlowApp {
 
 }
 
-// go
+// start app
 new TaskFlowApp();

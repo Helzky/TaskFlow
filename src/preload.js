@@ -1,6 +1,6 @@
 const { contextBridge, ipcRenderer } = require('electron');
 
-// expose safe ipc methods
+// expose apis to renderer
 contextBridge.exposeInMainWorld('api', {
   tasks: {
     getAll: () => ipcRenderer.invoke('tasks:get'),
@@ -12,7 +12,7 @@ contextBridge.exposeInMainWorld('api', {
     toggle: (enabled) => ipcRenderer.invoke('focus-mode:toggle', enabled)
   },
   utils: {
-    // for later
-  },
-  // more stuff later
+    // todo: add helper stuff here
+  }
+  // might add more apis later
 });
