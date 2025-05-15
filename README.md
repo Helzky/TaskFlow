@@ -68,7 +68,7 @@ The application has been implemented with:
 - Binaries for Windows, Linux, and macOS released on Github
 - OS integration for focus mode to close distracting applications
 - Productivity analytics implementation in the Analytics view
-- Cloud synchronization for cross-device access
+- Profiles for varying degrees of organization
 - Custom themes and appearance settings
 - Sound effects integration (currently disabled for stability reasons)
 - Project management features
