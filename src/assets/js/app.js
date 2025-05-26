@@ -491,7 +491,20 @@ class TaskFlowApp {
     // hide current stuff first
     const currentViewContainer = document.getElementById(`${this.currentView}-view`);
     if (currentViewContainer) {
+      // if we're hiding the 'today' view, explicitly hide the add task button
+      if (this.currentView === 'today') {
+        const addTaskBtn = document.getElementById('add-task-btn');
+        if (addTaskBtn) {
+          // store original transition and remove it temporarily
+          addTaskBtn.dataset.originalTransition = addTaskBtn.style.transition;
+          addTaskBtn.style.transition = 'none';
+          
+          addTaskBtn.style.opacity = '0';
+          addTaskBtn.style.pointerEvents = 'none'; // disable interactions immediately
+        }
+      }
       currentViewContainer.style.visibility = 'hidden';
+      currentViewContainer.classList.add('hidden'); // ensure display: none is applied immediately
       
       // need timeouts for smooth transitions
       setTimeout(() => {
@@ -511,6 +524,20 @@ class TaskFlowApp {
           const newViewContainer = document.getElementById(`${view}-view`);
           if (newViewContainer) {
             newViewContainer.style.visibility = 'visible';
+            newViewContainer.classList.remove('hidden'); // ensure display: none is removed
+            
+            // if we're showing the 'today' view, make the add task button visible again
+            if (view === 'today') {
+              const addTaskBtn = document.getElementById('add-task-btn');
+              if (addTaskBtn) {
+                addTaskBtn.style.opacity = '1';
+                addTaskBtn.style.pointerEvents = 'auto';
+                // Restore original transition after a brief delay to allow opacity to set
+                setTimeout(() => {
+                  addTaskBtn.style.transition = addTaskBtn.dataset.originalTransition || '';
+                }, 50);
+              }
+            }
           }
         }, 50);
       }, 100);
